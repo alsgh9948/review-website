@@ -1,4 +1,4 @@
-package minho.review.domain;
+package minho.review.user.domain;
 
 import lombok.Getter;
 import lombok.NonNull;

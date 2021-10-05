@@ -1,7 +1,7 @@
-package minho.review.service;
+package minho.review.user.service;
 
-import minho.review.domain.User;
-import minho.review.repository.UserRepository;
+import minho.review.user.domain.User;
+import minho.review.user.repository.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -30,8 +30,7 @@ class UserServiceTest {
         User user = createUser();
 
         userService.join(user);
-        assertTrue(userService.login(user.getId(),user.getPassword()));
-        assertFalse(userService.login("test","1234"));
+        assertEquals(user.getUser_uuid(),userService.login(user.getId(),user.getPassword()));
     }
 
     @Test
@@ -39,7 +38,7 @@ class UserServiceTest {
         User user = createUser();
         userService.join(user);
 
-        String findIdResult = userService.findMyId(user.getEmail(),user.getPhone());
+        String findIdResult = userService.findMyId(user);
         assertEquals(user.getId(),findIdResult);
     }
 
@@ -48,7 +47,7 @@ class UserServiceTest {
         User user = createUser();
         userService.join(user);
 
-        String findPasswordResult = userService.findMyPassword(user.getId(),user.getEmail(),user.getPhone());
+        String findPasswordResult = userService.findMyPassword(user);
         assertEquals(user.getPassword(),findPasswordResult);
     }
 
