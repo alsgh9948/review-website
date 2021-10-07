@@ -23,7 +23,11 @@ public class UserService {
     public UUID join(User user){
         validateDuplicateUser(user);
         userRepository.save(user);
-        return user.getUser_uuid();
+        return user.getUuid();
+    }
+
+    public User findOne(UUID uuid){
+        return userRepository.findOne(uuid);
     }
 
     public List<User> findAll(){
@@ -33,7 +37,7 @@ public class UserService {
     public UUID login(String id, String password){
         Optional<User> user = userRepository.findByIdAndPassword(id, password);
         if (user.isPresent()){
-            return user.get().getUser_uuid();
+            return user.get().getUuid();
         }
         else{
             throw new NotExistUserException("로그인 실패");

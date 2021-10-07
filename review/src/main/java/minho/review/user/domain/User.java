@@ -1,31 +1,29 @@
 package minho.review.user.domain;
 
 import lombok.Getter;
-import lombok.NonNull;
 import lombok.Setter;
+import minho.review.post.domain.Post;
+import minho.review.common.utils.BaseEntity;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 @Entity
-@Table(name="users")
+@Table(name="user")
 @Getter @Setter
-public class User {
-    @Id @GeneratedValue
-    private UUID user_uuid;
-
-    @NonNull
+public class User extends BaseEntity {
+    @NotNull
     private String id;
 
-    @NonNull
+    @NotNull
     private String password;
 
-    @NonNull
+    @NotNull
     private String email;
 
-    @NonNull
+    @NotNull
     private String phone;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)

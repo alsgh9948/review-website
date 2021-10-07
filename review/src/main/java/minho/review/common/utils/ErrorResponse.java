@@ -1,9 +1,9 @@
-package minho.review.utils;
+package minho.review.common.utils;
 
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import minho.review.user.enums.ErrorCode;
+import minho.review.common.enums.ErrorCode;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)

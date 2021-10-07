@@ -1,4 +1,4 @@
-package minho.review.utils;
+package minho.review.common.utils;
 
 import lombok.Getter;
 import lombok.Setter;

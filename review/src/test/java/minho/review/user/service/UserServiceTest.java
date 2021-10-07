@@ -30,7 +30,7 @@ class UserServiceTest {
         User user = createUser();
 
         userService.join(user);
-        assertEquals(user.getUser_uuid(),userService.login(user.getId(),user.getPassword()));
+        assertEquals(user.getUuid(),userService.login(user.getId(),user.getPassword()));
     }
 
     @Test

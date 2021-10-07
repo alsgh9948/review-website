@@ -1,9 +1,9 @@
 package minho.review.user.controller;
 
 import lombok.RequiredArgsConstructor;
+import minho.review.common.utils.Message;
 import minho.review.user.domain.User;
 import minho.review.user.service.UserService;
-import minho.review.utils.Message;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,6 +25,16 @@ public class UserController {
         message.setMessage("회원가입 성공");
         message.setData(join_uuid);
         return new ResponseEntity<Message>(message,HttpStatus.CREATED);
+    }
+
+    @GetMapping(value = "/{uuid}")
+    public ResponseEntity<Message> getUser (@PathVariable UUID uuid){
+        User user = userService.findOne(uuid);
+
+        Message message = new Message();
+        message.setMessage("유저 정보 조회");
+        message.setData(user);
+        return new ResponseEntity<Message>(message,HttpStatus.OK);
     }
 
     @GetMapping(value = "/list")
