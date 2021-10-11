@@ -4,7 +4,7 @@
 + 도커를 이용하여 웹 배포
 + 도커를 이용하여 디비서버 구축
 
-##TODO
+## TODO
 - [ ] JWT Authentication
 - [ ] Front End
 - [ ] Logger
