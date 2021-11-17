@@ -4,8 +4,7 @@ import lombok.RequiredArgsConstructor;
 import minho.review.common.utils.Message;
 import minho.review.user.domain.User;
 import minho.review.user.service.UserService;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,7 +18,6 @@ import java.util.UUID;
 public class UserController {
 
     private final UserService userService;
-    private static final Logger LOGGER = LogManager.getLogger(UserController.class);
 
     @PostMapping(value = "/join", produces = "application/json; charset=utf8")
     public ResponseEntity<Message> join (@RequestBody User user){
@@ -47,9 +45,6 @@ public class UserController {
         Message message = new Message();
         message.setMessage("전체 유저 정보 조회");
         message.setData(userList);
-        LOGGER.debug("test debug");
-        LOGGER.info("test info");
-        LOGGER.error("test error");
         return new ResponseEntity<Message>(message,HttpStatus.OK);
     }
 
