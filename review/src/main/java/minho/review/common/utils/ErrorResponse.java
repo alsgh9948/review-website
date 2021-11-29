@@ -32,4 +32,14 @@ public class ErrorResponse {
         this.code = errorCode.getCode();
         this.customMessage = customMessage;
     }
+
+    @Override
+    public String toString() {
+        return "ErrorResponse{" +
+                "message='" + message + '\'' +
+                ", status=" + status +
+                ", code='" + code + '\'' +
+                ", customMessage='" + customMessage + '\'' +
+                '}';
+    }
 }

@@ -1,0 +1,62 @@
+Configutation:
+  name: Default
+  status: info
+
+  Properties:
+    Property:
+      - name: logPath
+        value: "logs"
+      - name: logFormat
+        value: "[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t][%F] %c{1} - %msg%n"
+      - name: ApilogFormat
+        value: "[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} - %msg%n"
+      - name: consoleFormat
+        value: "%style{%d{ISO8601}}{black} %highlight{%-5level }[%style{%t}{bright,blue}] %style{%C{1.}}{bright,yellow}: %msg%n%throwable"
+
+  Appenders:
+    Console:
+      name: Console_Appender
+      target: SYSTEM_OUT
+      PatternLayout:
+        pattern: ${logFormat}
+    File:
+      - name: File_Appender
+        fileName: ${logPath}/logfile.log
+        PatternLayout:
+          pattern: ${ApilogFormat}
+      - name: Api_Log_Appender
+        fileName: ${logPath}/apilogfile.log
+        PatternLayout:
+          pattern: ${logFormat}
+    RollingFile:
+      - name: RollingFile_Appender
+        fileName: ${logPath}/rollingfile.log
+        filePattern: ${logPath}/archive/rollingfile.log_%d{yyyy-MM-dd}.gz
+        PatternLayout:
+          pattern: ${logFormat}
+        Policies:
+          TimeBasedTriggeringPolicy:
+            Interval: 1
+            modulate: true
+        DefaultRollOverStrategy:
+          Delete:
+            basePath: ${logPath}/archive
+            maxDepth: "1"
+            IfAccumulatedFileCount:
+              exceeds: 31
+  Loggers:
+    Root:
+      level: info
+      AppenderRef:
+        - ref: Console_Appender
+        - ref: File_Appender
+        - ref: RollingFile_Appender
+    Logger:
+      - name: minho.review
+        additivity: false
+        level: info
+        AppenderRef:
+          - ref: Console_Appender
+          - ref: File_Appender
+          - ref: Api_Log_Appender
+          - ref: RollingFile_Appender
