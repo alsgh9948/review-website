@@ -8,3 +8,7 @@
 - [ ] JWT Authentication
 - [ ] Front End
 - [ ] Logger
+   + request 정보에 대한 logging 추가함
+     + request body logging 추가 필요 
+   + 정의한 exception logging 추가함
+     + 이외의 공통 exception logging 추가 필요
