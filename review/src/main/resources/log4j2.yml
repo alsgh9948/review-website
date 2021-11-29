@@ -8,6 +8,8 @@ Configutation:
         value: "logs"
       - name: logFormat
         value: "[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t][%F] %c{1} - %msg%n"
+      - name: ApilogFormat
+        value: "[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} - %msg%n"
       - name: consoleFormat
         value: "%style{%d{ISO8601}}{black} %highlight{%-5level }[%style{%t}{bright,blue}] %style{%C{1.}}{bright,yellow}: %msg%n%throwable"
 
@@ -18,10 +20,14 @@ Configutation:
       PatternLayout:
         pattern: ${logFormat}
     File:
-      name: File_Appender
-      fileName: ${logPath}/logfile.log
-      PatternLayout:
-        pattern: ${logFormat}
+      - name: File_Appender
+        fileName: ${logPath}/logfile.log
+        PatternLayout:
+          pattern: ${ApilogFormat}
+      - name: Api_Log_Appender
+        fileName: ${logPath}/apilogfile.log
+        PatternLayout:
+          pattern: ${logFormat}
     RollingFile:
       - name: RollingFile_Appender
         fileName: ${logPath}/rollingfile.log
@@ -52,4 +58,5 @@ Configutation:
         AppenderRef:
           - ref: Console_Appender
           - ref: File_Appender
+          - ref: Api_Log_Appender
           - ref: RollingFile_Appender

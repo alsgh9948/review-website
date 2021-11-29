@@ -1,5 +1,6 @@
 package minho.review.post.domain;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import lombok.Getter;
 import lombok.Setter;
 import minho.review.user.domain.User;
@@ -24,7 +25,9 @@ public class Post extends BaseEntity {
     @ColumnDefault("1")
     private int viewCount;
 
+    @NotNull
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name="user_uuid")
+    @JsonBackReference
     private User user;
 }
