@@ -28,13 +28,6 @@ public class UserController {
         return new ResponseEntity<Message>(message,HttpStatus.CREATED);
     }
 
-    @GetMapping(value = "/logTest")
-    public ResponseEntity<Message> getLog (@RequestParam int[] data){
-        Message message = new Message();
-        message.setMessage("data");
-        message.setData(data);
-        return new ResponseEntity<Message>(message, HttpStatus.OK);
-    }
     @GetMapping(value = "/{uuid}")
     public ResponseEntity<Message> getUser (@PathVariable UUID uuid){
         User user = userService.findOne(uuid);
