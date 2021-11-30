@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.Setter;
 import minho.review.post.domain.Post;
 import minho.review.common.utils.BaseEntity;
+import org.hibernate.annotations.ColumnDefault;
+import org.springframework.boot.context.properties.bind.DefaultValue;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -31,4 +33,8 @@ public class User extends BaseEntity {
     @JsonManagedReference
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Post> posts;
+
+
+    @Convert(converter = RoleConverter.class)
+    private Role role;
 }
