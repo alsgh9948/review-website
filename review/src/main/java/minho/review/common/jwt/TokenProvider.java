@@ -1,17 +1,26 @@
 package minho.review.common.jwt;
 
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.*;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.stereotype.Component;
 
 import javax.crypto.spec.SecretKeySpec;
 import javax.xml.bind.DatatypeConverter;
 import java.security.Key;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 import java.util.stream.Collectors;
+
+@Log4j2
+@Component
 
 public class TokenProvider implements InitializingBean {
 
@@ -48,5 +57,41 @@ public class TokenProvider implements InitializingBean {
                .signWith(signatureAlgorithm,key)
                .setExpiration(expiredTime)
                .compact();
+    }
+
+    public Authentication getAuthentication(String token){
+        Claims claims = Jwts
+                .parser()
+                .setSigningKey(key)
+                .parseClaimsJws(token)
+                .getBody();
+
+        Collection<? extends GrantedAuthority> authorities =
+                Arrays.stream(claims.get(AUTHORITIES_KEY).toString().split(","))
+                .map(SimpleGrantedAuthority::new)
+                .collect(Collectors.toList());
+
+        User principal = new User(claims.getSubject(), "", authorities);
+
+        return new UsernamePasswordAuthenticationToken(principal, token, authorities);
+    }
+
+    public boolean validateToken(String token){
+        try{
+            Jwts.parser().setSigningKey(key).parseClaimsJws(token);
+            return true;
+        }  catch (SignatureException ex) {
+            log.error("Invalid JWT signature");
+        } catch (MalformedJwtException ex) {
+            log.error("Invalid JWT token");
+        } catch (ExpiredJwtException ex) {
+            log.error("Expired JWT token");
+        } catch (UnsupportedJwtException ex) {
+            log.error("Unsupported JWT token");
+        } catch (IllegalArgumentException ex) {
+            log.error("JWT claims string is empty.");
+        }
+
+        return false;
     }
 }

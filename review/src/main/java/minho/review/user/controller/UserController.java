@@ -1,12 +1,16 @@
 package minho.review.user.controller;
 
 import lombok.RequiredArgsConstructor;
+import minho.review.common.jwt.TokenProvider;
 import minho.review.common.utils.Message;
 import minho.review.user.domain.User;
 import minho.review.user.service.UserService;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,6 +22,9 @@ import java.util.UUID;
 public class UserController {
 
     private final UserService userService;
+
+    private final AuthenticationManagerBuilder authenticationManagerBuilder;
+    private final TokenProvider tokenProvider;
 
     @PostMapping(value = "/join", produces = "application/json; charset=utf8")
     public ResponseEntity<Message> join (@RequestBody User user){
@@ -50,11 +57,20 @@ public class UserController {
 
     @PostMapping(value="/login", produces = "application/json; charset=utf8")
     public ResponseEntity<Message> login (@RequestBody User user){
-        UUID user_uuid = userService.login(user.getId(),user.getPassword());
+        UUID user_uuid = userService.login(user.getUsername(),user.getPassword());
+
+        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword());
+
+        Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
+        System.out.println(authentication.getName());
+
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        String jwt = tokenProvider.createToken(authentication);
 
         Message message = new Message();
         message.setMessage("로그인 성공");
-        message.setData("Done");
+        message.setData(jwt);
         return new ResponseEntity<Message>(message,HttpStatus.OK);
     }
 

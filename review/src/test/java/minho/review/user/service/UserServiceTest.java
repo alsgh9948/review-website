@@ -30,7 +30,7 @@ class UserServiceTest {
         User user = createUser();
 
         userService.join(user);
-        assertEquals(user.getUuid(),userService.login(user.getId(),user.getPassword()));
+        assertEquals(user.getUuid(),userService.login(user.getUsername(),user.getPassword()));
     }
 
     @Test
@@ -39,7 +39,7 @@ class UserServiceTest {
         userService.join(user);
 
         String findIdResult = userService.findMyId(user);
-        assertEquals(user.getId(),findIdResult);
+        assertEquals(user.getUsername(),findIdResult);
     }
 
     @Test
@@ -53,7 +53,7 @@ class UserServiceTest {
 
     User createUser(){
         User user = new User();
-        user.setId("tester");
+        user.setUsername("tester");
         user.setPassword("123");
         user.setEmail("test@test.com");
         user.setPhone("01012341234");

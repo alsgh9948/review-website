@@ -5,6 +5,7 @@ import minho.review.user.domain.User;
 import minho.review.user.exception.DuplicateUserException;
 import minho.review.user.exception.NotExistUserException;
 import minho.review.user.repository.UserRepository;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,10 +19,14 @@ import java.util.UUID;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Transactional
     public UUID join(User user){
         validateDuplicateUser(user);
+
+        String encodedPassword = passwordEncoder.encode(user.getPassword());
+        user.setPassword(encodedPassword);
         userRepository.save(user);
         return user.getUuid();
     }
@@ -35,8 +40,8 @@ public class UserService {
     }
 
     public UUID login(String id, String password){
-        Optional<User> user = userRepository.findByIdAndPassword(id, password);
-        if (user.isPresent()){
+        Optional<User> user = userRepository.findByUsername(id);
+        if (user.isPresent() && passwordEncoder.matches(password,user.get().getPassword())){
             return user.get().getUuid();
         }
         else{
@@ -47,7 +52,7 @@ public class UserService {
     public String findMyId(User user){
         Optional<User> findUser = userRepository.findByEmailAndPhone(user.getEmail(), user.getPhone());
         if (findUser.isPresent()){
-            return findUser.get().getId();
+            return findUser.get().getUsername();
         }
         else{
             throw new NotExistUserException("아이디 찾기 실패");
@@ -55,7 +60,7 @@ public class UserService {
     }
 
     public String findMyPassword(User user){
-        Optional<User> findUser = userRepository.findByIdAndEmailAndPhone(user.getId(), user.getEmail(), user.getPhone());
+        Optional<User> findUser = userRepository.findByUsernameAndEmailAndPhone(user.getUsername(), user.getEmail(), user.getPhone());
         if (findUser.isPresent()){
             return findUser.get().getPassword();
         }
@@ -65,7 +70,7 @@ public class UserService {
     }
 
     public void validateDuplicateUser(User user){
-        Optional<User> findUsers = userRepository.findByIdOrEmailAndPhone(user.getId(), user.getEmail(), user.getPhone());
+        Optional<User> findUsers = userRepository.findByUsernameOrEmailAndPhone(user.getUsername(), user.getEmail(), user.getPhone());
         if (findUsers.isPresent()){
             throw new DuplicateUserException();
         }

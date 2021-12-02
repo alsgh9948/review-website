@@ -1,17 +1,13 @@
 package minho.review.user.domain;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Getter;
 import lombok.Setter;
-import minho.review.post.domain.Post;
 import minho.review.common.utils.BaseEntity;
-import org.hibernate.annotations.ColumnDefault;
-import org.springframework.boot.context.properties.bind.DefaultValue;
+import minho.review.post.domain.Post;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
-import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -19,7 +15,7 @@ import java.util.List;
 @Getter @Setter
 public class User extends BaseEntity {
     @NotNull
-    private String id;
+    private String username;
 
     @NotNull
     private String password;

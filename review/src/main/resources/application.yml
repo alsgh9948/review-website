@@ -27,5 +27,5 @@ logging:
 
 jwt:
   header: Authorization
-  secret_key: fioafgijsdgjsdofg@@Asfjogsrg_SD%)$$3w46)S%6s59slkth)S)Eq254_
-  expired_time: 60
+  secret: fioafgijsdgjsdofg@@Asfjogsrg_SD%)$$3w46)S%6s59slkth)S)Eq254_
+  expired_time: 60000
