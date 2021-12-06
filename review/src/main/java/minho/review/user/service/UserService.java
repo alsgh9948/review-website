@@ -31,6 +31,28 @@ public class UserService {
         return user.getUuid();
     }
 
+    @Transactional
+    public UUID updateUser(User user){
+        validateDuplicateUser(user);
+
+        User findUser = userRepository.findOne(user.getUuid());
+
+        if (user.getPassword() != null){
+            String encodePassword = passwordEncoder.encode(user.getPassword());
+            findUser.setPassword(encodePassword);
+        }
+
+        if(user.getEmail() != null){
+            findUser.setEmail(user.getEmail());
+        }
+
+        if(user.getPhone() != null){
+            findUser.setPhone(user.getPhone());
+        }
+
+        return findUser.getUuid();
+    }
+
     public User findOne(UUID uuid){
         return userRepository.findOne(uuid);
     }
@@ -75,4 +97,5 @@ public class UserService {
             throw new DuplicateUserException();
         }
     }
+
 }

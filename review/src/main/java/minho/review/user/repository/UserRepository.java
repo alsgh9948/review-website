@@ -17,7 +17,11 @@ public class UserRepository {
     private final EntityManager em;
 
     public void save(User user) {
-        em.persist(user);
+        if (user.getUuid() == null) {
+            em.persist(user);
+        } else {
+            em.merge(user);
+        }
     }
 
     public User findOne(UUID uuid){
