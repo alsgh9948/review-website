@@ -2,6 +2,7 @@ package minho.review.common.jwt;
 
 import io.jsonwebtoken.*;
 import lombok.extern.log4j.Log4j2;
+import minho.review.authority.exception.ExpiredTokenException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -9,6 +10,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.spec.SecretKeySpec;
@@ -28,13 +30,17 @@ public class TokenProvider implements InitializingBean {
 
     private final String secret;
     private final long tokenExpiredTime;
+    private final long refreshTokenExpiredTime;
 
     private Key key;
     private final SignatureAlgorithm signatureAlgorithm = SignatureAlgorithm.HS256;
 
-    public TokenProvider(@Value("${jwt.secret}") String secret, @Value("${jwt.expired_time}") long tokenExpiredTime) {
+    public TokenProvider(@Value("${jwt.secret}") String secret,
+                         @Value("${jwt.access_token_expired_time}") long tokenExpiredTime,
+                         @Value("${jwt.refresh_token_expired_time}") long refreshTokenExpiredTime) {
         this.secret = secret;
         this.tokenExpiredTime = tokenExpiredTime;
+        this.refreshTokenExpiredTime = refreshTokenExpiredTime;
     }
 
     @Override
@@ -43,15 +49,26 @@ public class TokenProvider implements InitializingBean {
         this.key = new SecretKeySpec(keyBytes,this.signatureAlgorithm.getJcaName());
     }
 
+    public String createRefreshToken(Authentication authentication){
+        long now = (new Date()).getTime();
+        Date expiredTime = new Date(now + this.refreshTokenExpiredTime);
+
+        CustomUserDetails customUserDetails = ((CustomUserDetails) authentication.getPrincipal());
+        return Jwts.builder()
+                .setSubject(customUserDetails.getUser().getUuid().toString())
+                .signWith(signatureAlgorithm,key)
+                .setExpiration(expiredTime)
+                .compact();
+    }
     public String createToken(Authentication authentication){
         String authorities = authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.joining(","));
 
-       long now = (new Date()).getTime();
-       Date expiredTime = new Date(now + this.tokenExpiredTime);
+        long now = (new Date()).getTime();
+        Date expiredTime = new Date(now + this.tokenExpiredTime);
 
-       return Jwts.builder()
+        return Jwts.builder()
                .setSubject(authentication.getName())
                .claim(AUTHORITIES_KEY, authorities)
                .signWith(signatureAlgorithm,key)

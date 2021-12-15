@@ -24,7 +24,6 @@ public class AdminController {
     @GetMapping(value = "/list")
     public ResponseEntity<Message> getUserList (){
         List<User> userList = userService.findAll();
-        System.out.println(userList.toString());
         Message message = new Message();
         message.setMessage("전체 유저 정보 조회");
         message.setData(userList);

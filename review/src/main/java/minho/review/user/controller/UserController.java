@@ -1,7 +1,7 @@
 package minho.review.user.controller;
 
 import lombok.RequiredArgsConstructor;
-import minho.review.common.jwt.TokenProvider;
+import minho.review.authority.service.AuthorityService;
 import minho.review.common.utils.Message;
 import minho.review.common.validationgroup.CreateValidationGroup;
 import minho.review.common.validationgroup.UpdateValidationGroup;
@@ -9,14 +9,11 @@ import minho.review.user.domain.User;
 import minho.review.user.service.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.UUID;
+import java.lang.reflect.Array;
+import java.util.*;
 
 @RestController
 @RequestMapping("/user")
@@ -24,9 +21,9 @@ import java.util.UUID;
 public class UserController {
 
     private final UserService userService;
+    private final AuthorityService authorityService;
 
-    private final AuthenticationManagerBuilder authenticationManagerBuilder;
-    private final TokenProvider tokenProvider;
+
 
     @PostMapping(value = "/join", produces = "application/json; charset=utf8")
     public ResponseEntity<Message> join (@RequestBody @Validated(CreateValidationGroup.class) User user){
@@ -61,18 +58,25 @@ public class UserController {
     public ResponseEntity<Message> login (@RequestBody User user){
         UUID user_uuid = userService.login(user.getUsername(),user.getPassword());
 
-        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword());
+        Map<String, Object> data  = new HashMap<String, Object>();
+        data.put("uuid",user_uuid);
 
-        Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
-        System.out.println(authentication.getName());
-
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-
-        String jwt = tokenProvider.createToken(authentication);
+        Map<String, String> jwt = authorityService.initializeToken(user,user_uuid.toString());
+        data.put("jwt",jwt);
 
         Message message = new Message();
         message.setMessage("로그인 성공");
-        message.setData(jwt);
+        message.setData(data);
+        return new ResponseEntity<Message>(message,HttpStatus.OK);
+    }
+
+    @PostMapping(value="/logout", produces = "application/json; charset=utf8")
+    public ResponseEntity<Message> logout (@RequestBody User user){
+        authorityService.deleteAccessAndRefreshToken(user.getUuid().toString());
+
+        Message message = new Message();
+        message.setMessage("로그아웃 성공");
+        message.setData("done.");
         return new ResponseEntity<Message>(message,HttpStatus.OK);
     }
 
@@ -93,6 +97,17 @@ public class UserController {
 
         message.setMessage("비밀번호 찾기 성공");
         message.setData(FindResult);
+        return new ResponseEntity<Message>(message,HttpStatus.OK);
+    }
+
+    @PostMapping(value="/refresh_access_token", produces = "application/json; charset=utf8")
+    public ResponseEntity<Message> refreshAccessToken(@RequestBody String accessToken){
+
+        Map<String, String> jwt = authorityService.refreshAccessToken(accessToken);
+
+        Message message = new Message();
+        message.setMessage("Access Token 갱신");
+        message.setData(jwt);
         return new ResponseEntity<Message>(message,HttpStatus.OK);
     }
 }

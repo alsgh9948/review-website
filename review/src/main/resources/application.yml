@@ -14,6 +14,11 @@ spring:
       hibernate:
 #        show_sql: true
         format_sql: true
+  redis:
+    host: 192.168.5.200
+    port: 6379
+    access_token_expired_time: 3600
+    refresh_token_expired_time: 86400
 
 server:
   servlet:
@@ -28,4 +33,5 @@ logging:
 jwt:
   header: Authorization
   secret: fioafgijsdgjsdofg@@Asfjogsrg_SD%)$$3w46)S%6s59slkth)S)Eq254_
-  expired_time: 3600000
+  access_token_expired_time: 3600000
+  refresh_token_expired_time: 86400000

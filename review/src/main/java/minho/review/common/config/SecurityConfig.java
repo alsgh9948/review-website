@@ -1,5 +1,7 @@
 package minho.review.common.config;
 
+import minho.review.authority.exception.AuthorityExceptionHandlerFilter;
+import minho.review.authority.repository.AccessTokenRepository;
 import minho.review.common.jwt.JwtAccessDeniedHandler;
 import minho.review.common.jwt.JwtAuthenticationEntryPoint;
 import minho.review.common.jwt.JwtSecurityConfig;
@@ -21,14 +23,16 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private final TokenProvider tokenProvider;
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
-
+    private final AccessTokenRepository accessTokenRepository;
     public SecurityConfig(
             TokenProvider tokenProvider,
             JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint,
-            JwtAccessDeniedHandler jwtAccessDeniedHandler) {
+            JwtAccessDeniedHandler jwtAccessDeniedHandler,
+            AccessTokenRepository accessTokenRepository) {
         this.tokenProvider = tokenProvider;
         this.jwtAuthenticationEntryPoint = jwtAuthenticationEntryPoint;
         this.jwtAccessDeniedHandler = jwtAccessDeniedHandler;
+        this.accessTokenRepository = accessTokenRepository;
     }
 
     protected void configure(HttpSecurity http) throws Exception {
@@ -56,7 +60,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .anyRequest().authenticated()
                 .and()
 
-                .apply(new JwtSecurityConfig(tokenProvider))
+                .apply(new JwtSecurityConfig(tokenProvider,accessTokenRepository))
                 .and()
 
                 .formLogin().disable().headers().frameOptions().disable();

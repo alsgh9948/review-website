@@ -1,6 +1,7 @@
 package minho.review.user.service;
 
 import lombok.RequiredArgsConstructor;
+import minho.review.common.jwt.CustomUserDetails;
 import minho.review.user.domain.User;
 import minho.review.user.exception.NotExistUserException;
 import minho.review.user.repository.UserRepository;
@@ -14,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Component("userDetailService")
 @RequiredArgsConstructor
@@ -23,16 +25,23 @@ public class CustomUserDetailService implements UserDetailsService {
 
     @Override
     @Transactional
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return userRepository.findByUsername(username)
-                .map(this::createUser)
-                .orElseThrow(NotExistUserException::new);
+    public CustomUserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        Optional<User> user = userRepository.findByUsername(username);
+        if (user.isPresent()){
+            return new CustomUserDetails(user.get());
+        }
+        else{
+            throw new UsernameNotFoundException("Not Found User");
+        }
+//        return new CustomUserDetails(userRepository.findByUsername(username));
+//                .map(this::createUser)
+//                .orElseThrow(NotExistUserException::new);
     }
 
-    private org.springframework.security.core.userdetails.User createUser(User user){
-        List<GrantedAuthority> grantedAuthorityList = new ArrayList<>();
-        grantedAuthorityList.add(new SimpleGrantedAuthority(user.getRole().getValue()));
-
-        return new org.springframework.security.core.userdetails.User(user.getUsername(), user.getPassword(), grantedAuthorityList);
-    }
+//    private org.springframework.security.core.userdetails.User createUser(User user){
+////        List<GrantedAuthority> grantedAuthorityList = new ArrayList<>();
+////        grantedAuthorityList.add(new SimpleGrantedAuthority(user.getRole().getValue()));
+//
+//        return new UserDetails(user);
+//    }
 }

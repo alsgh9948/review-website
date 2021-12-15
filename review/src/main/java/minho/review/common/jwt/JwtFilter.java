@@ -1,7 +1,11 @@
 package minho.review.common.jwt;
 
+import io.jsonwebtoken.MalformedJwtException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import minho.review.authority.domain.AccessToken;
+import minho.review.authority.exception.InvalidTokenException;
+import minho.review.authority.repository.AccessTokenRepository;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.StringUtils;
@@ -12,7 +16,9 @@ import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
+import javax.swing.text.html.Option;
 import java.io.IOException;
+import java.util.Optional;
 
 @Log4j2
 @RequiredArgsConstructor
@@ -21,23 +27,24 @@ public class JwtFilter extends GenericFilterBean {
     public static final String AUTHORIZATION_HEADER = "Authorization";
 
     private final TokenProvider tokenProvider;
-
+    private final AccessTokenRepository accessTokenRepository;
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
         HttpServletRequest httpServletRequest = (HttpServletRequest) request;
         String jwt = resolveToken(httpServletRequest);
-        String requestURI = httpServletRequest.getRequestURI();
 
         if(StringUtils.hasText(jwt) && tokenProvider.validateToken(jwt)){
-            Authentication authentication = tokenProvider.getAuthentication(jwt);
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-            log.info("Security Context에 '{}' 인증정보를 저장했습니다. url: {}",authentication.getName(), requestURI);
+            Optional<AccessToken> token = accessTokenRepository.findByToken(jwt);
+            if (token.isPresent()){
+                Authentication authentication = tokenProvider.getAuthentication(jwt);
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+            }
+            else{
+                log.info("Invalid Access Token");
+                throw new InvalidTokenException();
+            }
         }
-        else{
-            log.info("유효한 JWT 토큰이 없습니다, url: {}",requestURI);
-        }
-
         chain.doFilter(request, response);
     }
 

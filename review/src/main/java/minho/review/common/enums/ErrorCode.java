@@ -8,7 +8,10 @@ public enum ErrorCode {
     NOT_EXIST_USER(404,"2","Not Exist User Information"),
 
     DUPLICATER_POST(400,"10","Duplicate Title"),
-    NOT_EXIST_POST(404,"11","Not Exist Post");
+    NOT_EXIST_POST(404,"11","Not Exist Post"),
+
+    EXPIRED_TOKEN(401,"20","Expired Token"),
+    INVALID_TOKEN(401, "21", "Invalid Token");
 
     private final int status;
     private final String code;
