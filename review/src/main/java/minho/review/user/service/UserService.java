@@ -96,6 +96,7 @@ public class UserService {
             return findUser.get().getUsername();
         }
         else{
+
             throw new NotExistUserException("아이디 찾기 실패");
         }
     }
