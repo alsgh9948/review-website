@@ -1,11 +1,9 @@
 package minho.review.common.jwt;
 
-import io.jsonwebtoken.MalformedJwtException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import minho.review.authority.domain.AccessToken;
 import minho.review.authority.exception.InvalidTokenException;
-import minho.review.authority.repository.AccessTokenRepository;
+import minho.review.authority.utils.RedisUtils;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.StringUtils;
@@ -16,9 +14,7 @@ import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
-import javax.swing.text.html.Option;
 import java.io.IOException;
-import java.util.Optional;
 
 @Log4j2
 @RequiredArgsConstructor
@@ -27,7 +23,7 @@ public class JwtFilter extends GenericFilterBean {
     public static final String AUTHORIZATION_HEADER = "Authorization";
 
     private final TokenProvider tokenProvider;
-    private final AccessTokenRepository accessTokenRepository;
+    private final RedisUtils redisUtils;
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
@@ -35,8 +31,7 @@ public class JwtFilter extends GenericFilterBean {
         String jwt = resolveToken(httpServletRequest);
 
         if(StringUtils.hasText(jwt) && tokenProvider.validateToken(jwt)){
-            Optional<AccessToken> token = accessTokenRepository.findByToken(jwt);
-            if (token.isPresent()){
+            if (redisUtils.getData(jwt) == null){
                 Authentication authentication = tokenProvider.getAuthentication(jwt);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }

@@ -10,9 +10,10 @@ import minho.review.common.enums.ErrorCode;
 @ControllerAdvice
 public class UserExceptionHandler {
 
-    @ExceptionHandler(IllegalArgumentException.class)
+    @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ErrorResponse> handleIllegalArgumentException(final RuntimeException e){
         ErrorResponse response = new ErrorResponse("400",0,"111",e.getMessage());
+        e.printStackTrace();
 
         return new ResponseEntity<ErrorResponse>(response, HttpStatus.BAD_REQUEST);
     }

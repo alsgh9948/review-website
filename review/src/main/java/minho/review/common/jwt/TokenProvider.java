@@ -2,7 +2,6 @@ package minho.review.common.jwt;
 
 import io.jsonwebtoken.*;
 import lombok.extern.log4j.Log4j2;
-import minho.review.authority.exception.ExpiredTokenException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -10,7 +9,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.spec.SecretKeySpec;
@@ -76,12 +74,20 @@ public class TokenProvider implements InitializingBean {
                .compact();
     }
 
-    public Authentication getAuthentication(String token){
-        Claims claims = Jwts
+    public Claims getClaims (String token){
+        return Jwts
                 .parser()
                 .setSigningKey(key)
                 .parseClaimsJws(token)
                 .getBody();
+    }
+    public long getExpiration(String token){
+        Long expiration = getClaims(token).getExpiration().getTime();
+        Long now = new Date().getTime();
+        return expiration-now;
+    }
+    public Authentication getAuthentication(String token){
+        Claims claims = getClaims(token);
 
         Collection<? extends GrantedAuthority> authorities =
                 Arrays.stream(claims.get(AUTHORITIES_KEY).toString().split(","))

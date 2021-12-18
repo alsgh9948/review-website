@@ -1,6 +1,7 @@
 package minho.review.user.service;
 
 import lombok.RequiredArgsConstructor;
+import minho.review.authority.service.AuthorityService;
 import minho.review.user.domain.User;
 import minho.review.user.exception.DuplicateUserException;
 import minho.review.user.exception.NotExistUserException;
@@ -9,14 +10,14 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class UserService {
+
+    private final AuthorityService authorityService;
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -61,16 +62,34 @@ public class UserService {
         return userRepository.findAll();
     }
 
-    public UUID login(String id, String password){
-        Optional<User> user = userRepository.findByUsername(id);
+    public Map<String, Object> login(String username, String password){
+        Optional<User> user = userRepository.findByUsername(username);
         if (user.isPresent() && passwordEncoder.matches(password,user.get().getPassword())){
-            return user.get().getUuid();
+            String user_uuid = user.get().getUuid().toString();
+
+            Map<String, Object> data  = new HashMap<String, Object>();
+            data.put("uuid",user_uuid);
+
+            Map<String, String> jwt = authorityService.login(username, password,user_uuid);
+            data.put("jwt",jwt);
+
+            return data;
         }
         else{
             throw new NotExistUserException("로그인 실패");
         }
     }
 
+    public void logout(String bearerToken, User user){
+        User findUser = userRepository.findOne(user.getUuid());
+        if (findUser != null){
+            String accessToken = bearerToken.substring(7);
+            authorityService.logout(accessToken, user.getUuid().toString());
+        }
+        else{
+            throw new NotExistUserException();
+        }
+    }
     public String findMyId(User user){
         Optional<User> findUser = userRepository.findByEmailAndPhone(user.getEmail(), user.getPhone());
         if (findUser.isPresent()){
@@ -98,4 +117,7 @@ public class UserService {
         }
     }
 
+    public Map<String, String> refreshAccessToken(String accessToken){
+        return authorityService.refreshAccessToken(accessToken);
+    }
 }

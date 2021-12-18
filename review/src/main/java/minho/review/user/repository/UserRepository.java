@@ -27,6 +27,7 @@ public class UserRepository {
     public User findOne(UUID uuid){
         return em.find(User.class,uuid);
     }
+
     public List<User> findAll(){
         return em.createQuery("select u from User u ", User.class)
                 .getResultList();
