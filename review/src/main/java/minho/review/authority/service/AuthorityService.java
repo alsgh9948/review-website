@@ -1,8 +1,8 @@
 package minho.review.authority.service;
 
 import minho.review.authority.utils.RedisUtils;
-import minho.review.common.jwt.CustomUserDetails;
 import minho.review.common.jwt.TokenProvider;
+import minho.review.user.domain.User;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -34,19 +34,19 @@ public class AuthorityService {
         this.refreshTokenExpiredTime = refreshTokenExpiredTime;
     }
 
-    public String setRedisKey(String type, String uuid){
+    public String setRedisKey(String type, String id){
         if(type.equals("access")){
-            return "Access:" +uuid;
+            return "Access:" +id;
         }
         else{
-            return "Refresh:" +uuid;
+            return "Refresh:" +id;
         }
     }
 
-    public Map<String, String> login(String username, String password, String uuid){
+    public Map<String, String> login(String username, String password, String id){
 
-        String redisAccessTokenKey = setRedisKey("access",uuid);
-        String redisRefreshTokenKey = setRedisKey("refresh",uuid);
+        String redisAccessTokenKey = setRedisKey("access",id);
+        String redisRefreshTokenKey = setRedisKey("refresh",id);
 
         String remainAccessToken = redisUtils.getData(redisAccessTokenKey);
         if(remainAccessToken != null){
@@ -73,26 +73,28 @@ public class AuthorityService {
         return jwt;
     }
 
-    public void logout(String accessToken, String uuid){
+    public void logout(String accessToken, String id){
         setBlackListToken(accessToken);
-        redisUtils.deleteData(setRedisKey("access",uuid));
-        redisUtils.deleteData(setRedisKey("refresh",uuid));
+        redisUtils.deleteData(setRedisKey("access",id));
+        redisUtils.deleteData(setRedisKey("refresh",id));
     }
     public void setBlackListToken(String accessToken){
         long expiredTime = tokenProvider.getExpiration(accessToken);
         redisUtils.setData(accessToken,"logout",expiredTime);
     }
 
-    public Map<String, String> refreshAccessToken(String accessToken){
+    public Map<String, String> refreshAccessToken(String accessToken, User user){
+        setBlackListToken(accessToken);
+
         Map<String, String> jwt = new HashMap<>();
 
-        Authentication authentication = tokenProvider.getAuthentication(accessToken);
-        CustomUserDetails customUserDetails = ((CustomUserDetails) authentication.getPrincipal());
-
-        String refreshToken = redisUtils.getData(customUserDetails.getUser().getUuid().toString());
+        String refreshToken = redisUtils.getData(setRedisKey("refresh",user.getId()));
         if (tokenProvider.validateToken(refreshToken)) {
+
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             SecurityContextHolder.getContext().setAuthentication(authentication);
             String newAccessToken = tokenProvider.createToken(authentication);
+
             jwt.put("accessToken", newAccessToken);
         }
         return jwt;
