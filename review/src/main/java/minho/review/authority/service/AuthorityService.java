@@ -87,8 +87,8 @@ public class AuthorityService {
         setBlackListToken(accessToken);
 
         Map<String, String> jwt = new HashMap<>();
-
-        String refreshToken = redisUtils.getData(setRedisKey("refresh",user.getId()));
+        System.out.println(user.getUuid());
+        String refreshToken = redisUtils.getData(setRedisKey("refresh",user.getUuid().toString()));
         if (tokenProvider.validateToken(refreshToken)) {
 
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
