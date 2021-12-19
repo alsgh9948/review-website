@@ -53,7 +53,7 @@ public class TokenProvider implements InitializingBean {
 
         CustomUserDetails customUserDetails = ((CustomUserDetails) authentication.getPrincipal());
         return Jwts.builder()
-                .setSubject(customUserDetails.getUser().getUuid().toString())
+                .setSubject(customUserDetails.getUser().getId())
                 .signWith(signatureAlgorithm,key)
                 .setExpiration(expiredTime)
                 .compact();
