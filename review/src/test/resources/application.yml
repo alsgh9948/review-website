@@ -1,7 +1,8 @@
 #database config
 spring:
   datasource:
-    url: jdbc:mysql://192.168.56.105:3306/review?useSSL=false&useUnicode=true&serverTimezone=Asia/Seoul&MVCC=true
+    #    url: jdbc:mysql://192.168.56.105:3306/review?useSSL=false&useUnicode=true&serverTimezone=Asia/Seoul&MVCC=true
+    url: jdbc:mysql://192.168.5.200:3306/review?useSSL=false&useUnicode=true&serverTimezone=Asia/Seoul&MVCC=true
     username: root
     password: 1234
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -11,10 +12,26 @@ spring:
       ddl-auto: update
     properties:
       hibernate:
-#        show_sql: true
+        #        show_sql: true
         format_sql: true
+  redis:
+    host: 192.168.5.200
+    port: 6379
+    access_token_expired_time: 3600
+    refresh_token_expired_time: 86400
 
+server:
+  servlet:
+    context-path: /api
 logging:
+  #  config: classpath:log4j2.xml
+  config: classpath:log4j2.yml
   level:
-    org.hibernate.SQL: debug
+    #    org.hibernate.SQL: debug
     org.hibernate.type: trace
+
+jwt:
+  header: Authorization
+  secret: fioafgijsdgjsdofg@@Asfjogsrg_SD%)$$3w46)S%6s59slkth)S)Eq254_
+  access_token_expired_time: 3600000
+  refresh_token_expired_time: 86400000

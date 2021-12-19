@@ -14,6 +14,9 @@ spring:
       hibernate:
 #        show_sql: true
         format_sql: true
+  redis:
+    host: 192.168.5.200
+    port: 6379
 
 server:
   servlet:
@@ -25,3 +28,8 @@ logging:
 #    org.hibernate.SQL: debug
     org.hibernate.type: trace
 
+jwt:
+  header: Authorization
+  secret: fioafgijsdgjsdofg@@Asfjogsrg_SD%)$$3w46)S%6s59slkth)S)Eq254_
+  access_token_expired_time: 3600000
+  refresh_token_expired_time: 86400000
