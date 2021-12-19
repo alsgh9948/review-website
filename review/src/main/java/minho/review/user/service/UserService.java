@@ -117,7 +117,9 @@ public class UserService {
         }
     }
 
-    public Map<String, String> refreshAccessToken(String accessToken){
-        return authorityService.refreshAccessToken(accessToken);
+    public Map<String, String> refreshAccessToken(String bearerToken, User user){
+        String accessToken = bearerToken.substring(7);
+        User findUser = userRepository.findOne(user.getUuid());
+        return authorityService.refreshAccessToken(accessToken, findUser);
     }
 }

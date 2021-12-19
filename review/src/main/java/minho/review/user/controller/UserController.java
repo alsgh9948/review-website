@@ -91,9 +91,9 @@ public class UserController {
     }
 
     @PostMapping(value="/refresh_access_token", produces = "application/json; charset=utf8")
-    public ResponseEntity<Message> refreshAccessToken(@RequestBody String accessToken){
+    public ResponseEntity<Message> refreshAccessToken(@RequestHeader (name="Authorization") String bearerToken, @RequestBody User user){
 
-        Map<String, String> jwt = userService.refreshAccessToken(accessToken);
+        Map<String, String> jwt = userService.refreshAccessToken(bearerToken, user);
 
         Message message = new Message();
         message.setMessage("Access Token 갱신");
