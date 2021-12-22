@@ -5,14 +5,12 @@ import minho.review.common.utils.Message;
 import minho.review.common.validationgroup.UpdateValidationGroup;
 import minho.review.user.domain.User;
 import minho.review.user.service.UserService;
-import org.hibernate.sql.Update;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/admin")
@@ -32,11 +30,11 @@ public class AdminController {
 
     @PostMapping(value="/update", produces = "application/json; charset=utf8")
     public ResponseEntity<Message> updateUser (@RequestBody @Validated(UpdateValidationGroup.class) User user){
-        UUID user_uuid = userService.updateUser(user);
+        String userId = userService.updateUser(user);
 
         Message message = new Message();
         message.setMessage("유저 정보 수정");
-        message.setData(user_uuid);
+        message.setData(userId);
         return new ResponseEntity<Message>(message,HttpStatus.OK);
     }
 }

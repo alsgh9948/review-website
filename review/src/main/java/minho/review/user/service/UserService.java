@@ -2,6 +2,7 @@ package minho.review.user.service;
 
 import lombok.RequiredArgsConstructor;
 import minho.review.authority.service.AuthorityService;
+import minho.review.common.utils.Utils;
 import minho.review.user.domain.User;
 import minho.review.user.exception.DuplicateUserException;
 import minho.review.user.exception.NotExistUserException;
@@ -23,39 +24,40 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
 
     @Transactional
-    public UUID join(User user){
+    public String join(User user){
         validateDuplicateUser(user);
 
         String encodedPassword = passwordEncoder.encode(user.getPassword());
         user.setPassword(encodedPassword);
         userRepository.save(user);
-        return user.getUuid();
+        return user.getId();
     }
 
     @Transactional
-    public UUID updateUser(User user){
+    public String updateUser(User user){
         validateDuplicateUser(user);
 
-        User findUser = userRepository.findOne(user.getUuid());
+        User updateUser = userRepository.findById(user.getId()).orElseThrow(NotExistUserException::new);
 
         if (user.getPassword() != null){
             String encodePassword = passwordEncoder.encode(user.getPassword());
-            findUser.setPassword(encodePassword);
+            updateUser.setPassword(encodePassword);
         }
 
         if(user.getEmail() != null){
-            findUser.setEmail(user.getEmail());
+            updateUser.setEmail(user.getEmail());
         }
 
         if(user.getPhone() != null){
-            findUser.setPhone(user.getPhone());
+            updateUser.setPhone(user.getPhone());
         }
 
-        return findUser.getUuid();
+        userRepository.save(updateUser);
+        return updateUser.getId();
     }
 
-    public User findOne(UUID uuid){
-        return userRepository.findOne(uuid);
+    public User findById(String userId){
+        return userRepository.findById(userId).orElseThrow(NotExistUserException::new);
     }
 
     public List<User> findAll(){
@@ -65,12 +67,12 @@ public class UserService {
     public Map<String, Object> login(String username, String password){
         Optional<User> user = userRepository.findByUsername(username);
         if (user.isPresent() && passwordEncoder.matches(password,user.get().getPassword())){
-            String user_uuid = user.get().getUuid().toString();
+            String userId = user.get().getId();
 
             Map<String, Object> data  = new HashMap<String, Object>();
-            data.put("uuid",user_uuid);
+            data.put("id",userId);
 
-            Map<String, String> jwt = authorityService.login(username, password,user_uuid);
+            Map<String, String> jwt = authorityService.login(username, password,userId);
             data.put("jwt",jwt);
 
             return data;
@@ -81,33 +83,27 @@ public class UserService {
     }
 
     public void logout(String bearerToken, User user){
-        User findUser = userRepository.findOne(user.getUuid());
-        if (findUser != null){
-            String accessToken = bearerToken.substring(7);
-            authorityService.logout(accessToken, user.getUuid().toString());
-        }
-        else{
-            throw new NotExistUserException();
-        }
+        User findUser = userRepository.findById(user.getId()).orElseThrow(NotExistUserException::new);
+        String accessToken = bearerToken.substring(7);
+        authorityService.logout(accessToken, user.getId());
     }
     public String findMyId(User user){
-        Optional<User> findUser = userRepository.findByEmailAndPhone(user.getEmail(), user.getPhone());
-        if (findUser.isPresent()){
-            return findUser.get().getUsername();
-        }
-        else{
-            throw new NotExistUserException("아이디 찾기 실패");
-        }
+        User findUser = userRepository.findByEmailAndPhone(user.getEmail(), user.getPhone()).orElseThrow(NotExistUserException::new);
+        return findUser.getUsername();
     }
 
+    @Transactional
     public String findMyPassword(User user){
-        Optional<User> findUser = userRepository.findByUsernameAndEmailAndPhone(user.getUsername(), user.getEmail(), user.getPhone());
-        if (findUser.isPresent()){
-            return findUser.get().getPassword();
-        }
-        else{
-            throw new NotExistUserException("비밀번호 찾기 실패");
-        }
+        User findUser = userRepository.findByUsernameAndEmailAndPhone(user.getUsername(), user.getEmail(), user.getPhone())
+                .orElseThrow(NotExistUserException::new);
+
+        String temporaryPassword = new Utils().getRamdomPassword(8);
+        String encodedPassword = passwordEncoder.encode(temporaryPassword);
+
+        findUser.setPassword(encodedPassword);
+
+        userRepository.save(findUser);
+        return temporaryPassword;
     }
 
     public void validateDuplicateUser(User user){
@@ -119,7 +115,7 @@ public class UserService {
 
     public Map<String, String> refreshAccessToken(String bearerToken, User user){
         String accessToken = bearerToken.substring(7);
-        User findUser = userRepository.findOne(user.getUuid());
+        User findUser = userRepository.findById(user.getId()).orElseThrow(NotExistUserException::new);
         return authorityService.refreshAccessToken(accessToken, findUser);
     }
 }

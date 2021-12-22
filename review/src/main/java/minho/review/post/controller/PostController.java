@@ -3,13 +3,13 @@ package minho.review.post.controller;
 import lombok.RequiredArgsConstructor;
 import minho.review.common.utils.Message;
 import minho.review.post.domain.Post;
+import minho.review.post.dto.CreatePostDto;
 import minho.review.post.sevice.PostService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/post")
@@ -18,9 +18,9 @@ public class PostController {
 
     private final PostService postService;
 
-    @GetMapping(value = "/{uuid}")
-    public ResponseEntity<Message> getPost(@PathVariable UUID uuid){
-        Post post = postService.findOne(uuid);
+    @GetMapping(value = "/{postId}")
+    public ResponseEntity<Message> getPost(@PathVariable String postId){
+        Post post = postService.findById(postId);
         postService.updateViewCount(post);
 
         Message message = new Message();
@@ -40,28 +40,28 @@ public class PostController {
     }
 
     @PostMapping(value = "/create", produces = "application/json; charset=utf8")
-    public ResponseEntity<Message> createPost(@RequestBody Post post) {
-        UUID uuid = postService.createPost(post);
+    public ResponseEntity<Message> createPost(@RequestBody CreatePostDto createPostDto) {
+        String postId = postService.createPost(createPostDto);
 
         Message message = new Message();
         message.setMessage("게시글 생성");
-        message.setData(uuid);
+        message.setData(postId);
         return new ResponseEntity<Message>(message, HttpStatus.OK);
     }
 
-    @PostMapping(value = "/update/{postUuid}", produces = "application/json; charset=utf8")
-    public ResponseEntity<Message> updatePost(@PathVariable UUID postUuid, @RequestBody Post post) {
-        UUID uuid = postService.updatePost(postUuid,post);
+    @PostMapping(value = "/update/{postId}", produces = "application/json; charset=utf8")
+    public ResponseEntity<Message> updatePost(@PathVariable String postId, @RequestBody Post post) {
+        String updatePostId = postService.updatePost(postId,post);
 
         Message message = new Message();
         message.setMessage("게시글 수정");
-        message.setData(uuid);
+        message.setData(updatePostId);
         return new ResponseEntity<Message>(message, HttpStatus.OK);
     }
 
-    @DeleteMapping(value = "/delete/{postUuid}", produces = "application/json; charset=utf8")
-    public ResponseEntity<Message> deletePost(@PathVariable UUID postUuid) {
-        postService.deletePost(postUuid);
+    @DeleteMapping(value = "/delete/{postId}", produces = "application/json; charset=utf8")
+    public ResponseEntity<Message> deletePost(@PathVariable String postId) {
+        postService.deletePost(postId);
 
         Message message = new Message();
         message.setMessage("게시글 삭제");

@@ -27,7 +27,17 @@ public class Post extends BaseEntity {
 
     @NotNull
     @ManyToOne(fetch = LAZY)
-    @JoinColumn(name="user_uuid")
+    @JoinColumn(name="user_id")
     @JsonBackReference
     private User user;
+
+    @Override
+    public String toString() {
+        return "Post{" +
+                "title='" + title + '\'' +
+                ", contents='" + contents + '\'' +
+                ", viewCount=" + viewCount +
+                ", user=" + user +
+                '}';
+    }
 }
