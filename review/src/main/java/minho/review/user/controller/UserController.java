@@ -1,12 +1,13 @@
 package minho.review.user.controller;
 
 import lombok.RequiredArgsConstructor;
+import minho.review.authority.dto.TokenDto;
 import minho.review.common.utils.Message;
 import minho.review.common.validationgroup.CreateValidationGroup;
 import minho.review.common.validationgroup.UpdateValidationGroup;
 import minho.review.post.domain.Post;
 import minho.review.post.sevice.PostService;
-import minho.review.user.domain.User;
+import minho.review.user.dto.UserDto;
 import minho.review.user.service.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,7 +15,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/user")
@@ -25,46 +25,45 @@ public class UserController {
     private final PostService postService;
 
     @PostMapping(value = "/join", produces = "application/json; charset=utf8")
-    public ResponseEntity<Message> join (@RequestBody @Validated(CreateValidationGroup.class) User user){
-        String userId = userService.join(user);
+    public ResponseEntity<Message> join (@RequestBody @Validated(CreateValidationGroup.class) UserDto.Request joinRequest){
+        UserDto.Response response = userService.join(joinRequest);
         Message message = new Message();
         message.setMessage("회원가입 성공");
-        message.setData(userId);
+        message.setData(response);
         return new ResponseEntity<Message>(message,HttpStatus.CREATED);
     }
 
     @GetMapping(value = "/{userId}")
     public ResponseEntity<Message> getUser (@PathVariable String userId){
-        User user = userService.findById(userId);
-
+        UserDto.Response response = userService.findById(userId);
         Message message = new Message();
         message.setMessage("유저 정보 조회");
-        message.setData(user);
+        message.setData(response);
         return new ResponseEntity<Message>(message,HttpStatus.OK);
     }
 
     @PostMapping(value="/update", produces = "application/json; charset=utf8")
-    public ResponseEntity<Message> updateUser (@RequestBody @Validated(UpdateValidationGroup.class) User user){
-        String userId = userService.updateUser(user);
+    public ResponseEntity<Message> updateUser (@RequestBody @Validated(UpdateValidationGroup.class) UserDto.Request user){
+        UserDto.Response response = userService.updateUser(user);
 
         Message message = new Message();
         message.setMessage("유저 정보 수정");
-        message.setData(userId);
+        message.setData(response);
         return new ResponseEntity<Message>(message,HttpStatus.OK);
     }
 
     @PostMapping(value="/login", produces = "application/json; charset=utf8")
-    public ResponseEntity<Message> login (@RequestBody User user){
-        Map<String, Object> loginInfo = userService.login(user.getUsername(),user.getPassword());
+    public ResponseEntity<Message> login (@RequestBody UserDto.Request user){
+        TokenDto.RepsonseAll response = userService.login(user.getUsername(),user.getPassword());
 
         Message message = new Message();
         message.setMessage("로그인 성공");
-        message.setData(loginInfo);
+        message.setData(response);
         return new ResponseEntity<Message>(message,HttpStatus.OK);
     }
 
     @PostMapping(value="/logout", produces = "application/json; charset=utf8")
-    public ResponseEntity<Message> logout (@RequestHeader (name="Authorization") String bearerToken, @RequestBody User user){
+    public ResponseEntity<Message> logout (@RequestHeader (name="Authorization") String bearerToken, @RequestBody UserDto.Request user){
         userService.logout(bearerToken, user);
 
         Message message = new Message();
@@ -74,7 +73,7 @@ public class UserController {
     }
 
     @PostMapping(value="/find_id", produces = "application/json; charset=utf8")
-    public ResponseEntity<Message> findMyId(@RequestBody User user){
+    public ResponseEntity<Message> findMyId(@RequestBody UserDto.Request user){
         String FindResult = userService.findMyId(user);
         Message message = new Message();
 
@@ -84,7 +83,7 @@ public class UserController {
     }
 
     @PostMapping(value="/find_password", produces = "application/json; charset=utf8")
-    public ResponseEntity<Message> findMyPassword(@RequestBody User user){
+    public ResponseEntity<Message> findMyPassword(@RequestBody UserDto.Request user){
         String temporaryPassword = userService.findMyPassword(user);
         Message message = new Message();
 
@@ -94,13 +93,13 @@ public class UserController {
     }
 
     @PostMapping(value="/refresh_access_token", produces = "application/json; charset=utf8")
-    public ResponseEntity<Message> refreshAccessToken(@RequestHeader (name="Authorization") String bearerToken, @RequestBody User user){
+    public ResponseEntity<Message> refreshAccessToken(@RequestHeader (name="Authorization") String bearerToken, @RequestBody UserDto.Request user){
 
-        Map<String, String> jwt = userService.refreshAccessToken(bearerToken, user);
+        TokenDto.Repsonse response = userService.refreshAccessToken(bearerToken, user);
 
         Message message = new Message();
         message.setMessage("Access Token 갱신");
-        message.setData(jwt);
+        message.setData(response);
         return new ResponseEntity<Message>(message,HttpStatus.OK);
     }
 

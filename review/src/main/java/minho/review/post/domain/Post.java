@@ -6,6 +6,7 @@ import lombok.Setter;
 import minho.review.user.domain.User;
 import minho.review.common.utils.BaseEntity;
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -16,6 +17,11 @@ import static javax.persistence.FetchType.LAZY;
 @Table(name="post")
 @Getter @Setter
 public class Post extends BaseEntity {
+    @Id
+    @GeneratedValue(generator = "uuid_generator")
+    @GenericGenerator(name = "uuid_generator", strategy = "uuid")
+    private String id;
+
     @NotNull
     private String title;
 

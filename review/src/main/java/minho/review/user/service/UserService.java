@@ -1,9 +1,11 @@
 package minho.review.user.service;
 
 import lombok.RequiredArgsConstructor;
+import minho.review.authority.dto.TokenDto;
 import minho.review.authority.service.AuthorityService;
 import minho.review.common.utils.Utils;
 import minho.review.user.domain.User;
+import minho.review.user.dto.UserDto;
 import minho.review.user.exception.DuplicateUserException;
 import minho.review.user.exception.NotExistUserException;
 import minho.review.user.repository.UserRepository;
@@ -11,7 +13,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
 
 @Service
 @Transactional(readOnly = true)
@@ -24,18 +27,19 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
 
     @Transactional
-    public String join(User user){
-        validateDuplicateUser(user);
+    public UserDto.Response join(UserDto.Request joinRequest){
+        validateDuplicateUser(joinRequest);
 
-        String encodedPassword = passwordEncoder.encode(user.getPassword());
-        user.setPassword(encodedPassword);
-        userRepository.save(user);
-        return user.getId();
+        String encodedPassword = passwordEncoder.encode(joinRequest.getPassword());
+        joinRequest.setPassword(encodedPassword);
+
+        User info = userRepository.save(joinRequest.toEntity());
+        return new UserDto.Response(info,joinRequest.getRole());
     }
 
     @Transactional
-    public String updateUser(User user){
-        validateDuplicateUser(user);
+    public UserDto.Response updateUser(UserDto.Request user){
+//        validateDuplicateUser(user);
 
         User updateUser = userRepository.findById(user.getId()).orElseThrow(NotExistUserException::new);
 
@@ -52,48 +56,43 @@ public class UserService {
             updateUser.setPhone(user.getPhone());
         }
 
-        userRepository.save(updateUser);
-        return updateUser.getId();
+        return new UserDto.Response(userRepository.save(updateUser));
     }
 
-    public User findById(String userId){
-        return userRepository.findById(userId).orElseThrow(NotExistUserException::new);
+    public UserDto.Response findById(String userId){
+        User user = userRepository.findById(userId).orElseThrow(NotExistUserException::new);
+        return new UserDto.Response(user);
     }
 
     public List<User> findAll(){
         return userRepository.findAll();
     }
 
-    public Map<String, Object> login(String username, String password){
+    public TokenDto.RepsonseAll login(String username, String password){
         Optional<User> user = userRepository.findByUsername(username);
         if (user.isPresent() && passwordEncoder.matches(password,user.get().getPassword())){
             String userId = user.get().getId();
 
-            Map<String, Object> data  = new HashMap<String, Object>();
-            data.put("id",userId);
-
-            Map<String, String> jwt = authorityService.login(username, password,userId);
-            data.put("jwt",jwt);
-
-            return data;
+            TokenDto.RepsonseAll response = authorityService.login(username, password,userId);
+            return response;
         }
         else{
             throw new NotExistUserException("로그인 실패");
         }
     }
 
-    public void logout(String bearerToken, User user){
+    public void logout(String bearerToken, UserDto.Request user){
         User findUser = userRepository.findById(user.getId()).orElseThrow(NotExistUserException::new);
         String accessToken = bearerToken.substring(7);
         authorityService.logout(accessToken, user.getId());
     }
-    public String findMyId(User user){
+    public String findMyId(UserDto.Request user){
         User findUser = userRepository.findByEmailAndPhone(user.getEmail(), user.getPhone()).orElseThrow(NotExistUserException::new);
         return findUser.getUsername();
     }
 
     @Transactional
-    public String findMyPassword(User user){
+    public String findMyPassword(UserDto.Request user){
         User findUser = userRepository.findByUsernameAndEmailAndPhone(user.getUsername(), user.getEmail(), user.getPhone())
                 .orElseThrow(NotExistUserException::new);
 
@@ -106,14 +105,14 @@ public class UserService {
         return temporaryPassword;
     }
 
-    public void validateDuplicateUser(User user){
+    public void validateDuplicateUser(UserDto.Request user){
         Optional<User> findUsers = userRepository.findByUsernameOrEmailAndPhone(user.getUsername(), user.getEmail(), user.getPhone());
         if (findUsers.isPresent()){
             throw new DuplicateUserException();
         }
     }
 
-    public Map<String, String> refreshAccessToken(String bearerToken, User user){
+    public TokenDto.Repsonse refreshAccessToken(String bearerToken, UserDto.Request user){
         String accessToken = bearerToken.substring(7);
         User findUser = userRepository.findById(user.getId()).orElseThrow(NotExistUserException::new);
         return authorityService.refreshAccessToken(accessToken, findUser);
