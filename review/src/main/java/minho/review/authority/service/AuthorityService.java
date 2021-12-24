@@ -1,5 +1,6 @@
 package minho.review.authority.service;
 
+import minho.review.authority.dto.TokenDto;
 import minho.review.authority.utils.RedisUtils;
 import minho.review.common.jwt.TokenProvider;
 import minho.review.user.domain.User;
@@ -9,9 +10,6 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-
-import java.util.HashMap;
-import java.util.Map;
 
 @Service
 public class AuthorityService {
@@ -43,7 +41,7 @@ public class AuthorityService {
         }
     }
 
-    public Map<String, String> login(String username, String password, String id){
+    public TokenDto.RepsonseAll login(String username, String password, String id){
 
         String redisAccessTokenKey = setRedisKey("access",id);
         String redisRefreshTokenKey = setRedisKey("refresh",id);
@@ -62,15 +60,12 @@ public class AuthorityService {
         String accessToken = tokenProvider.createToken(authentication);
         String refreshToken = tokenProvider.createRefreshToken(authentication);
 
-        Map<String, String> jwt = new HashMap<>();
-
-        jwt.put("accessToken",accessToken);
-        jwt.put("refreshToken",refreshToken);
+        TokenDto.RepsonseAll response = new TokenDto.RepsonseAll(id,accessToken,refreshToken);
 
         redisUtils.setData(redisAccessTokenKey,accessToken,accessTokenExpiredTime);
         redisUtils.setData(redisRefreshTokenKey,refreshToken,refreshTokenExpiredTime);
 
-        return jwt;
+        return response;
     }
 
     public void logout(String accessToken, String id){
@@ -83,10 +78,10 @@ public class AuthorityService {
         redisUtils.setData(accessToken,"logout",expiredTime);
     }
 
-    public Map<String, String> refreshAccessToken(String accessToken, User user){
+    public TokenDto.Repsonse refreshAccessToken(String accessToken, User user){
         setBlackListToken(accessToken);
 
-        Map<String, String> jwt = new HashMap<>();
+        TokenDto.Repsonse response = null;
         String refreshToken = redisUtils.getData(setRedisKey("refresh",user.getId().toString()));
         if (tokenProvider.validateToken(refreshToken)) {
 
@@ -94,8 +89,8 @@ public class AuthorityService {
             SecurityContextHolder.getContext().setAuthentication(authentication);
             String newAccessToken = tokenProvider.createToken(authentication);
 
-            jwt.put("accessToken", newAccessToken);
+            response = new TokenDto.Repsonse(user.getId(), newAccessToken);
         }
-        return jwt;
+        return response;
     }
 }
