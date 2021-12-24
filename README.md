@@ -6,9 +6,18 @@
 
 ## TODO
 - [ ] JWT Authentication
-- [ ] Front End
+
+   + JWT를 이용한 로그인
+   + role에 따른 API 접근권한 분리
+   + Redis로 refresh, blacklist token 관리
 - [ ] Logger
    + request 정보에 대한 logging 추가함
      + request body logging 추가 필요 
    + 정의한 exception logging 추가함
      + 이외의 공통 exception logging 추가 필요
+
+ - [ ] DB Manage
+
+   + Jpa -> Query DSL로 변경
+
+ - [ ] DTO
