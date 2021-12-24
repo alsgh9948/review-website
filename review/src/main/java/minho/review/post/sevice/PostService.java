@@ -2,7 +2,8 @@ package minho.review.post.sevice;
 
 import lombok.RequiredArgsConstructor;
 import minho.review.post.domain.Post;
-import minho.review.post.dto.CreatePostDto;
+import minho.review.post.dto.PostDto;
+import minho.review.post.dto.PostsDto;
 import minho.review.post.exception.DuplicatePostException;
 import minho.review.post.exception.NotExistPostException;
 import minho.review.post.repository.PostRepository;
@@ -23,37 +24,41 @@ public class PostService {
     private final UserRepository userRepository;
 
     @Transactional
-    public String createPost(CreatePostDto createPostDto){
-        validateDuplicatePostTitle(createPostDto);
+    public PostDto.Response createPost(PostDto.Request postRequestDto){
+//        validateDuplicatePostTitle(postRequestDto);
 
-        User writer = userRepository.findById(createPostDto.getUser_id()).orElseThrow(NotExistPostException::new);
+        User writer = userRepository.findById(postRequestDto.getUserId()).orElseThrow(NotExistPostException::new);
 
-        Post post = new Post();
-        post.setTitle(createPostDto.getTitle());
-        post.setContents(createPostDto.getContents());
-        post.setUser(writer);
+        Post post = postRequestDto.toEntity(writer);
 
         postRepository.save(post);
-        return post.getId();
+        return new PostDto.Response(post);
     }
 
     @Transactional
-    public String updatePost(String postId, Post post){
-        Post findPost = findById(postId);
+    public PostDto.Response updatePost(String postId, PostDto.Request postRequestDto){
+        Post findPost = postRepository.findById(postId).orElseThrow(NotExistPostException::new);
 
-//        validateDuplicatePostTitle(post);
+        System.out.println(findPost.getId());
+//        validateDuplicatePostTitle(findPost);
 
-        findPost.setTitle(post.getTitle());
-        findPost.setContents(post.getContents());
+        if(postRequestDto.getTitle() != null) {
+            findPost.setTitle(postRequestDto.getTitle());
+        }
+
+        if(postRequestDto.getContents() != null) {
+            findPost.setContents(postRequestDto.getContents());
+        }
 
         postRepository.save(findPost);
-        return findPost.getId();
+        return new PostDto.Response(findPost);
     }
 
     @Transactional
-    public void updateViewCount(Post post){
-        post.setViewCount(post.getViewCount()+1);
-        postRepository.save(post);
+    public PostDto.Response getPost(String postId){
+        postRepository.updateViewCount(postId);
+        Post findPost = postRepository.findById(postId).orElseThrow(NotExistPostException::new);
+        return new PostDto.Response(findPost);
     }
 
     @Transactional
@@ -66,16 +71,12 @@ public class PostService {
         return postRepository.findByUser_IdOrderByCreateDate(id);
     }
 
-    public Post findById(String postId){
-        return postRepository.findById(postId).orElseThrow(NotExistPostException::new);
+    public PostsDto.Response getAllPost(){
+        return new PostsDto.Response(postRepository.findAll());
     }
 
-    public List<Post> findAll(){
-        return postRepository.findAll();
-    }
-
-    public void validateDuplicatePostTitle(CreatePostDto post){
-        Optional<Post> findPost = postRepository.findByTitle(post.getTitle());
+    public void validateDuplicatePostTitle(PostDto.Request postReqeustDto){
+        Optional<Post> findPost = postRepository.findByTitle(postReqeustDto.getTitle());
         if (findPost.isPresent()){
             throw new DuplicatePostException();
         }

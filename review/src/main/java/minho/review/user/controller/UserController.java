@@ -7,6 +7,7 @@ import minho.review.common.validationgroup.CreateValidationGroup;
 import minho.review.common.validationgroup.UpdateValidationGroup;
 import minho.review.post.domain.Post;
 import minho.review.post.sevice.PostService;
+import minho.review.user.dto.FindDto;
 import minho.review.user.dto.UserDto;
 import minho.review.user.service.UserService;
 import org.springframework.http.HttpStatus;
@@ -72,23 +73,23 @@ public class UserController {
         return new ResponseEntity<Message>(message,HttpStatus.OK);
     }
 
-    @PostMapping(value="/find_id", produces = "application/json; charset=utf8")
+    @PostMapping(value="/find_username", produces = "application/json; charset=utf8")
     public ResponseEntity<Message> findMyId(@RequestBody UserDto.Request user){
-        String FindResult = userService.findMyId(user);
+        FindDto.findUsernameResponse response = userService.findMyUsername(user);
         Message message = new Message();
 
         message.setMessage("아이디 찾기 성공");
-        message.setData(FindResult);
+        message.setData(response);
         return new ResponseEntity<Message>(message,HttpStatus.OK);
     }
 
     @PostMapping(value="/find_password", produces = "application/json; charset=utf8")
     public ResponseEntity<Message> findMyPassword(@RequestBody UserDto.Request user){
-        String temporaryPassword = userService.findMyPassword(user);
+        FindDto.findPasswordResponse response = userService.findMyPassword(user);
         Message message = new Message();
 
         message.setMessage("비밀번호 찾기 성공");
-        message.setData("임시 비밀번호 : "+temporaryPassword);
+        message.setData(response);
         return new ResponseEntity<Message>(message,HttpStatus.OK);
     }
 

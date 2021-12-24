@@ -5,7 +5,9 @@ import minho.review.authority.dto.TokenDto;
 import minho.review.authority.service.AuthorityService;
 import minho.review.common.utils.Utils;
 import minho.review.user.domain.User;
+import minho.review.user.dto.FindDto;
 import minho.review.user.dto.UserDto;
+import minho.review.user.dto.UsersDto;
 import minho.review.user.exception.DuplicateUserException;
 import minho.review.user.exception.NotExistUserException;
 import minho.review.user.repository.UserRepository;
@@ -13,7 +15,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -39,7 +40,6 @@ public class UserService {
 
     @Transactional
     public UserDto.Response updateUser(UserDto.Request user){
-//        validateDuplicateUser(user);
 
         User updateUser = userRepository.findById(user.getId()).orElseThrow(NotExistUserException::new);
 
@@ -64,8 +64,8 @@ public class UserService {
         return new UserDto.Response(user);
     }
 
-    public List<User> findAll(){
-        return userRepository.findAll();
+    public UsersDto.Response getAllUser(){
+        return new UsersDto.Response(userRepository.findAll());
     }
 
     public TokenDto.RepsonseAll login(String username, String password){
@@ -73,8 +73,7 @@ public class UserService {
         if (user.isPresent() && passwordEncoder.matches(password,user.get().getPassword())){
             String userId = user.get().getId();
 
-            TokenDto.RepsonseAll response = authorityService.login(username, password,userId);
-            return response;
+            return authorityService.login(username, password,userId);
         }
         else{
             throw new NotExistUserException("로그인 실패");
@@ -86,13 +85,13 @@ public class UserService {
         String accessToken = bearerToken.substring(7);
         authorityService.logout(accessToken, user.getId());
     }
-    public String findMyId(UserDto.Request user){
+    public FindDto.findUsernameResponse findMyUsername(UserDto.Request user){
         User findUser = userRepository.findByEmailAndPhone(user.getEmail(), user.getPhone()).orElseThrow(NotExistUserException::new);
-        return findUser.getUsername();
+        return new FindDto.findUsernameResponse(findUser.getUsername());
     }
 
     @Transactional
-    public String findMyPassword(UserDto.Request user){
+    public FindDto.findPasswordResponse findMyPassword(UserDto.Request user){
         User findUser = userRepository.findByUsernameAndEmailAndPhone(user.getUsername(), user.getEmail(), user.getPhone())
                 .orElseThrow(NotExistUserException::new);
 
@@ -102,7 +101,7 @@ public class UserService {
         findUser.setPassword(encodedPassword);
 
         userRepository.save(findUser);
-        return temporaryPassword;
+        return new FindDto.findPasswordResponse(temporaryPassword);
     }
 
     public void validateDuplicateUser(UserDto.Request user){
