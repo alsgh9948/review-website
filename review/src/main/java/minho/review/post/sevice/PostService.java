@@ -2,15 +2,18 @@ package minho.review.post.sevice;
 
 import lombok.RequiredArgsConstructor;
 import minho.review.post.domain.Post;
+import minho.review.post.dto.PostDto;
+import minho.review.post.dto.PostsDto;
 import minho.review.post.exception.DuplicatePostException;
 import minho.review.post.exception.NotExistPostException;
 import minho.review.post.repository.PostRepository;
+import minho.review.user.domain.User;
+import minho.review.user.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -18,64 +21,65 @@ import java.util.UUID;
 public class PostService {
 
     private final PostRepository postRepository;
+    private final UserRepository userRepository;
 
     @Transactional
-    public UUID createPost(Post post){
-        validateDuplicatePostTitle(post);
+    public PostDto.Response createPost(PostDto.Request postRequestDto){
+//        validateDuplicatePostTitle(postRequestDto);
+
+        User writer = userRepository.findById(postRequestDto.getUserId()).orElseThrow(NotExistPostException::new);
+
+        Post post = postRequestDto.toEntity(writer);
+
         postRepository.save(post);
-        return post.getUuid();
+        return new PostDto.Response(post);
     }
 
     @Transactional
-    public UUID updatePost(UUID uuid, Post post){
-        Post findPost = findOne(uuid);
+    public PostDto.Response updatePost(String postId, PostDto.Request postRequestDto){
+        Post findPost = postRepository.findById(postId).orElseThrow(NotExistPostException::new);
 
-        validateDuplicatePostTitle(post);
+        System.out.println(findPost.getId());
+//        validateDuplicatePostTitle(findPost);
 
-        findPost.setTitle(post.getTitle());
-        findPost.setContents(post.getContents());
+        if(postRequestDto.getTitle() != null) {
+            findPost.setTitle(postRequestDto.getTitle());
+        }
+
+        if(postRequestDto.getContents() != null) {
+            findPost.setContents(postRequestDto.getContents());
+        }
 
         postRepository.save(findPost);
-        return findPost.getUuid();
+        return new PostDto.Response(findPost);
     }
 
     @Transactional
-    public void updateViewCount(Post post){
-        post.setViewCount(post.getViewCount()+1);
-        System.out.println(post.getViewCount());
-        postRepository.save(post);
+    public PostDto.Response getPost(String postId){
+        postRepository.updateViewCount(postId);
+        Post findPost = postRepository.findById(postId).orElseThrow(NotExistPostException::new);
+        return new PostDto.Response(findPost);
     }
 
     @Transactional
-    public void deletePost(UUID uuid){
-        Post post = postRepository.findOne(uuid);
-
-        if (post == null){
-            throw new NotExistPostException();
-        }
-        else{
-            postRepository.delete(uuid);
-        }
-    }
-    public Post findOne(UUID uuid){
-        Post post = postRepository.findOne(uuid);
-        if (post == null) {
-            throw new NotExistPostException();
-        }
-        else {
-            return postRepository.findOne(uuid);
-        }
+    public void deletePost(String postId){
+        Post post = postRepository.findById(postId).orElseThrow(NotExistPostException::new);
+        postRepository.deleteById(postId);
     }
 
-    public List<Post> findAll(){
-        return postRepository.findAll();
+    public List<Post> findByWriter(String id){
+        return postRepository.findByUser_IdOrderByCreateDate(id);
     }
 
-    public void validateDuplicatePostTitle(Post post){
-        Optional<Post> findPost = postRepository.findTitle(post.getTitle());
+    public PostsDto.Response getAllPost(){
+        return new PostsDto.Response(postRepository.findAll());
+    }
+
+    public void validateDuplicatePostTitle(PostDto.Request postReqeustDto){
+        Optional<Post> findPost = postRepository.findByTitle(postReqeustDto.getTitle());
         if (findPost.isPresent()){
-            System.out.println(findPost.get().getTitle());
             throw new DuplicatePostException();
         }
     }
+
 }

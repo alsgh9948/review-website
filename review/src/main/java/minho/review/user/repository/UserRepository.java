@@ -1,64 +1,23 @@
 package minho.review.user.repository;
 
-import lombok.RequiredArgsConstructor;
 import minho.review.user.domain.User;
-import org.springframework.stereotype.Repository;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
-import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
-import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
-@Repository
-@RequiredArgsConstructor
-public class UserRepository {
+public interface UserRepository extends JpaRepository<User, String> {
+    Optional<User> findByUsername(String username);
 
-    private final EntityManager em;
+    Optional<User> findByUsernameAndPassword(String username, String password);
 
-    public void save(User user) {
-        em.persist(user);
-    }
+    @Query(value = "select u from User u where username= :username or (email = :email and phone = :phone)", nativeQuery = true)
+    Optional<User> findByUsernameOrEmailAndPhone(@Param("username") String username,
+                                                 @Param("email") String email,
+                                                 @Param("phone") String phone);
 
-    public User findOne(UUID uuid){
-        return em.find(User.class,uuid);
-    }
-    public List<User> findAll(){
-        return em.createQuery("select u from User u ", User.class)
-                .getResultList();
-    }
+    Optional<User> findByUsernameAndEmailAndPhone(String username, String email, String phone);
 
-    public Optional<User> findByIdAndPassword(String id, String password){
-        TypedQuery<User> user = em.createQuery("select u from User u where u.id = :id and u.password = :password", User.class)
-                .setParameter("id",id)
-                .setParameter("password",password);
-
-        return user.getResultList().stream().findAny();
-    }
-
-    public Optional<User> findByIdOrEmailAndPhone(String id,String email, String phone){
-        TypedQuery<User> user = em.createQuery("select u from User u where u.id = :id or (u.email = :email and u.phone = :phone)", User.class)
-                .setParameter("id",id)
-                .setParameter("email",email)
-                .setParameter("phone",phone);
-
-        return user.getResultList().stream().findAny();
-    }
-
-    public Optional<User> findByIdAndEmailAndPhone(String id,String email, String phone){
-        TypedQuery<User> user = em.createQuery("select u from User u where u.id = :id and u.email = :email and u.phone = :phone", User.class)
-                .setParameter("id",id)
-                .setParameter("email",email)
-                .setParameter("phone",phone);
-
-        return user.getResultList().stream().findAny();
-    }
-
-    public Optional<User> findByEmailAndPhone(String email, String phone){
-        TypedQuery<User> user = em.createQuery("select u from User u where u.email = :email and u.phone = :phone", User.class)
-                .setParameter("email",email)
-                .setParameter("phone",phone);
-
-        return user.getResultList().stream().findAny();
-    }
+    Optional<User> findByEmailAndPhone(String email, String phone);
 }
