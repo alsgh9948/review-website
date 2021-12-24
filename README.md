@@ -5,8 +5,7 @@
 + 도커를 이용하여 디비서버 구축
 
 ## TODO
-- [ ] JWT Authentication
-
+- [x] JWT Authentication
    + JWT를 이용한 로그인
    + role에 따른 API 접근권한 분리
    + Redis로 refresh, blacklist token 관리
@@ -15,9 +14,6 @@
      + request body logging 추가 필요 
    + 정의한 exception logging 추가함
      + 이외의 공통 exception logging 추가 필요
-
  - [ ] DB Manage
-
    + Jpa -> Query DSL로 변경
-
- - [ ] DTO
+ - [x] DTO
